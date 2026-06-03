@@ -11,6 +11,11 @@
   Do not add data fetching, scripts, or route logic here.
 */
 
+:root {
+  --editable-container: 1180px;
+  --editable-border: rgba(15, 79, 89, 0.16);
+}
+
 body {
   background-color: var(--slot4-page-bg) !important;
   color: var(--slot4-page-text) !important;
@@ -41,4 +46,16 @@ body {
 
 .article-content a {
   color: var(--slot4-accent-fill);
+}
+
+.article-content {
+  color: color-mix(in oklab, var(--slot4-page-text) 88%, white);
+}
+
+.article-content p {
+  margin: 1.15rem 0;
+}
+
+.article-content img {
+  border-radius: 8px;
 }

@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import type { CSSProperties } from 'react'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Bookmark, Building2, Camera, CheckCircle2, Download, ExternalLink, FileText, Globe2, Mail, MapPin, MessageCircle, Phone, Tag, UserRound } from 'lucide-react'
+import { ArrowLeft, Bookmark, Building2, Camera, Download, ExternalLink, FileText, Globe2, Mail, MapPin, MessageCircle, Phone, UserRound } from 'lucide-react'
 import { buildPostMetadata, buildTaskMetadata } from '@/lib/seo'
 import { buildPostUrl, fetchArticleComments, fetchTaskPostBySlug, fetchTaskPosts } from '@/lib/task-data'
-import { getTaskConfig, SITE_CONFIG, type TaskKey } from '@/lib/site-config'
+import { getTaskConfig, type TaskKey } from '@/lib/site-config'
 import type { SitePost } from '@/lib/site-connector'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 import { getVisualPreset, visualSystem } from '@/editable/theme/visual-system'
@@ -106,7 +106,7 @@ const mapSrcFor = (post: SitePost) => {
 
 export function TaskDetailView({ task, post, related, comments = [] }: { task: TaskKey; post: SitePost; related: SitePost[]; comments?: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
   const preset = getVisualPreset(visualSystem.recommendedPreset as any)
-  const detailVars = { '--detail-bg': preset.colors.background, '--detail-text': preset.colors.foreground, '--detail-surface': preset.colors.surface, '--detail-accent': preset.colors.accent } as CSSProperties
+  const detailVars = { '--detail-bg': '#f3f8f7', '--detail-text': '#102a2f', '--detail-surface': '#ffffff', '--detail-accent': '#0f4f59' } as CSSProperties
 
   return (
     <EditableSiteShell>
@@ -126,7 +126,7 @@ export function TaskDetailView({ task, post, related, comments = [] }: { task: T
 function BackLink({ task }: { task: TaskKey }) {
   const taskConfig = getTaskConfig(task)
   return (
-    <Link href={taskConfig?.route || '/'} className="inline-flex items-center gap-2 rounded-full border border-[var(--editable-border)] bg-white/70 px-4 py-2 text-sm font-black">
+    <Link href={taskConfig?.route || '/'} className="inline-flex items-center gap-2 rounded-full border border-[var(--editable-border)] bg-white px-4 py-2 text-sm font-black">
       <ArrowLeft className="h-4 w-4" /> Back to {taskConfig?.label || 'posts'}
     </Link>
   )
@@ -135,16 +135,25 @@ function BackLink({ task }: { task: TaskKey }) {
 function ArticleDetail({ post, related, comments }: { post: SitePost; related: SitePost[]; comments: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
   const images = getImages(post)
   return (
-    <section className="mx-auto grid max-w-[var(--editable-container)] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_350px] lg:px-8 lg:py-16">
-      <article className="min-w-0 rounded-[2.7rem] border border-[var(--editable-border)] bg-[var(--detail-surface)] p-5 shadow-[0_30px_90px_rgba(15,23,42,0.09)] sm:p-8 lg:p-12">
+    <section className="mx-auto grid max-w-[var(--editable-container)] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_330px] lg:px-8 lg:py-14">
+      <article className="min-w-0 bg-[var(--detail-surface)]">
         <BackLink task="article" />
-        <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-[var(--detail-accent)]">{categoryOf(post, 'Article')}</p>
-        <h1 className="mt-4 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-5xl lg:text-7xl">{post.title}</h1>
-        {images[0] ? <img src={images[0]} alt="" className="mt-8 max-h-[620px] w-full rounded-[2rem] object-cover" /> : null}
+        {images[0] ? <img src={images[0]} alt="" className="mt-8 max-h-[560px] w-full object-cover" /> : null}
+        <p className="mt-8 text-xs font-black uppercase tracking-[0.24em] text-[var(--detail-accent)]">{categoryOf(post, 'Article')}</p>
+        <h1 className="mt-4 text-4xl font-black leading-tight tracking-[-0.04em] sm:text-5xl">{post.title}</h1>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-y border-[var(--editable-border)] py-4">
+          <div className="flex flex-wrap items-center gap-4 text-xs font-black uppercase tracking-[0.14em] text-[#496266]">
+            <span>By Editorial Desk</span>
+            <span>{comments.length} comments</span>
+            <span>{Math.max(240, post.title.length * 9)} views</span>
+          </div>
+          <ShareButtons task="article" post={post} />
+        </div>
         <BodyContent post={post} />
+        <ArticleTagAndNext post={post} related={related} />
         <EditableComments slug={post.slug} comments={comments} />
       </article>
-      <RelatedPanel task="article" post={post} related={related} />
+      <DetailSidebar task="article" related={related} />
     </section>
   )
 }
@@ -298,27 +307,116 @@ function ProfileDetail({ post, related }: { post: SitePost; related: SitePost[] 
   const website = getField(post, ['website', 'url'])
   const email = getField(post, ['email'])
   return (
-    <section className="mx-auto grid max-w-[var(--editable-container)] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[420px_minmax(0,1fr)] lg:px-8 lg:py-16">
-      <aside className="rounded-[2.7rem] border border-[var(--editable-border)] bg-white p-8 text-center shadow-[0_30px_90px_rgba(15,23,42,0.08)] lg:sticky lg:top-24 lg:self-start">
+    <section className="mx-auto grid max-w-[var(--editable-container)] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[320px_minmax(0,1fr)_300px] lg:px-8 lg:py-14">
+      <aside className="rounded-lg border border-[var(--editable-border)] bg-white p-7 text-center shadow-[0_20px_55px_rgba(15,79,89,0.08)] lg:sticky lg:top-24 lg:self-start">
         <BackLink task="profile" />
-        <div className="mx-auto mt-10 flex h-40 w-40 items-center justify-center overflow-hidden rounded-full bg-[var(--detail-bg)] ring-1 ring-[var(--editable-border)]">
+        <div className="mx-auto mt-10 flex h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-[var(--detail-bg)] ring-1 ring-[var(--editable-border)]">
           {images[0] ? <img src={images[0]} alt="" className="h-full w-full object-cover" /> : <UserRound className="h-16 w-16 opacity-45" />}
         </div>
-        <h1 className="mt-6 text-4xl font-black leading-[0.98] tracking-[-0.07em]">{post.title}</h1>
+        <h1 className="mt-6 text-3xl font-black leading-tight tracking-[-0.04em]">{post.title}</h1>
         {role ? <p className="mt-3 text-xs font-black uppercase tracking-[0.18em] text-[var(--detail-accent)]">{role}</p> : null}
         <ContactAction website={website} email={email} />
       </aside>
-      <article className="rounded-[2.7rem] border border-[var(--editable-border)] bg-white p-7 shadow-sm sm:p-10">
+      <article className="rounded-lg border border-[var(--editable-border)] bg-white p-7 shadow-sm sm:p-10">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--detail-accent)]">Profile article</p>
+        <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">About {post.title}</h2>
         <BodyContent post={post} />
         <ImageStrip images={images.slice(1)} label="Profile gallery" />
-        <RelatedPanel task="profile" post={post} related={related} />
+        <div className="mt-8 border-t border-[var(--editable-border)] pt-6">
+          <ShareButtons task="profile" post={post} />
+        </div>
       </article>
+      <DetailSidebar task="profile" related={related} />
     </section>
   )
 }
 
+function DetailBlockTitle({ title }: { title: string }) {
+  return <div className="border-t-4 border-[#0f4f59] bg-white px-4 py-3 text-base font-black uppercase text-[#102a2f] shadow-[0_1px_0_rgba(15,79,89,0.12)]">{title}</div>
+}
+
+function ShareButtons({ task, post }: { task: TaskKey; post: SitePost }) {
+  const url = encodeURIComponent(buildPostUrl(task, post.slug))
+  const title = encodeURIComponent(post.title)
+  const links = [
+    ['f', `https://www.facebook.com/sharer/sharer.php?u=${url}`],
+    ['t', `https://twitter.com/intent/tweet?text=${title}&url=${url}`],
+    ['p', `https://www.pinterest.com/pin/create/button/?url=${url}&description=${title}`],
+    ['in', `https://www.linkedin.com/sharing/share-offsite/?url=${url}`],
+  ]
+  return (
+    <div className="flex items-center gap-2">
+      {links.map(([label, href]) => (
+        <Link key={label} href={href} target="_blank" rel="noreferrer" className="flex h-8 min-w-8 items-center justify-center bg-[#0f4f59] px-2 text-xs font-black text-white hover:bg-[#0b4149]">
+          {label}
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+function DetailSidebar({ task, related }: { task: TaskKey; related: SitePost[] }) {
+  const latest = related.slice(0, 3)
+  const hot = related.slice(3, 7).length ? related.slice(3, 7) : related.slice(0, 4)
+  return (
+    <aside className="grid gap-7 lg:sticky lg:top-32 lg:self-start">
+      <section className="border border-[var(--editable-border)] bg-white p-5">
+        <DetailBlockTitle title="Our latest updates" />
+        <div className="py-7 text-center">
+          <p className="text-4xl font-black text-[#0f4f59]">t</p>
+          <p className="mx-auto mt-4 max-w-[230px] text-sm font-semibold leading-7 text-[#496266]">Fresh article picks and editorial updates from the reading desk.</p>
+          <Link href="/contact" className="mt-6 inline-flex bg-[#0f4f59] px-4 py-2 text-sm font-black text-white">Follow us</Link>
+        </div>
+      </section>
+      <section className="border border-[var(--editable-border)] bg-white p-5">
+        <DetailBlockTitle title="What's hot" />
+        <div className="mt-5 grid gap-5">
+          {hot.map((item) => <RelatedCard key={item.id || item.slug} task={task} post={item} />)}
+          {!hot.length ? <p className="text-sm font-semibold leading-7 text-[#496266]">Related articles will appear here when more posts are available.</p> : null}
+        </div>
+        <Link href={getTaskConfig(task)?.route || '/article'} className="mx-auto mt-6 flex w-fit border border-[var(--editable-border)] bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#496266] hover:text-[#0f4f59]">Load more</Link>
+      </section>
+      {latest.length ? (
+        <section className="border border-[var(--editable-border)] bg-white p-5">
+          <DetailBlockTitle title="Related posts" />
+          <div className="mt-5 grid gap-3">
+            {latest.map((item) => (
+              <Link key={item.id || item.slug} href={buildPostUrl(task, item.slug)} className="text-sm font-black leading-tight text-[#102a2f] hover:text-[#0f4f59]">{item.title}</Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </aside>
+  )
+}
+
+function ArticleTagAndNext({ post, related }: { post: SitePost; related: SitePost[] }) {
+  const next = related[0]
+  return (
+    <section className="mt-10 border-y border-[var(--editable-border)] py-7">
+      <div className="flex flex-wrap items-center gap-3">
+        <TagIcon />
+        <span className="bg-[#0f4f59] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white">{categoryOf(post, 'Article')}</span>
+      </div>
+      {next ? (
+        <Link href={buildPostUrl('article', next.slug)} className="mt-7 grid gap-3 sm:grid-cols-[1fr_80px] sm:items-center">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#496266]">Next post</p>
+            <h3 className="mt-2 max-w-md text-xl font-semibold leading-tight text-[#102a2f]">{next.title}</h3>
+          </div>
+          <span className="text-5xl font-black text-[#0f4f59]">›</span>
+        </Link>
+      ) : null}
+    </section>
+  )
+}
+
+function TagIcon() {
+  return <span className="text-xl text-[#607579]">◆</span>
+}
+
 function BodyContent({ post, compact = false }: { post: SitePost; compact?: boolean }) {
-  return <div className={`article-content mt-8 max-w-none ${compact ? 'text-base leading-8' : 'text-lg leading-9'} opacity-80`} dangerouslySetInnerHTML={{ __html: formatPlainText(getBody(post)) }} />
+  return <div className={`article-content mt-8 max-w-none ${compact ? 'text-base leading-8' : 'text-lg leading-9'} text-[#102a2f]/85`} dangerouslySetInnerHTML={{ __html: formatPlainText(getBody(post)) }} />
 }
 
 function InfoGrid({ items }: { items: Array<[string, string, typeof MapPin]> }) {
@@ -342,7 +440,7 @@ function ImageStrip({ images, label, large = false }: { images: string[]; label:
     <section className="mt-8">
       <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--detail-accent)]">{label}</p>
       <div className={`mt-4 grid gap-3 ${large ? 'sm:grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'}`}>
-        {images.slice(0, large ? 4 : 8).map((image, index) => <img key={`${image}-${index}`} src={image} alt="" className="aspect-[4/3] rounded-[1.4rem] object-cover ring-1 ring-[var(--editable-border)]" />)}
+        {images.slice(0, large ? 4 : 8).map((image, index) => <img key={`${image}-${index}`} src={image} alt="" className="aspect-[4/3] rounded-lg object-cover ring-1 ring-[var(--editable-border)]" />)}
       </div>
     </section>
   )
@@ -360,7 +458,7 @@ function MapBox({ src, label }: { src: string; label: string }) {
 function ContactAction({ website, phone, email }: { website?: string; phone?: string; email?: string }) {
   if (!website && !phone && !email) return null
   return (
-    <div className="mt-5 rounded-[2rem] border border-[var(--editable-border)] bg-white p-5 shadow-sm">
+    <div className="mt-5 rounded-lg border border-[var(--editable-border)] bg-white p-5 shadow-sm">
       <p className="text-xs font-black uppercase tracking-[0.22em] opacity-55">Quick actions</p>
       <div className="mt-4 flex flex-wrap gap-3">
         {website ? <Link href={website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-[var(--detail-text)] px-4 py-2 text-sm font-black text-[var(--detail-bg)]">Website <ExternalLink className="h-4 w-4" /></Link> : null}
@@ -379,18 +477,8 @@ function RelatedPanel({ task, post, related, compact = false }: { task: TaskKey;
   const taskConfig = getTaskConfig(task)
   return (
     <aside className="min-w-0 space-y-5">
-      {!compact ? (
-        <div className="rounded-[2rem] border border-[var(--editable-border)] bg-white/70 p-5 backdrop-blur">
-          <p className="text-xs font-black uppercase tracking-[0.22em] opacity-55">About this post</p>
-          <div className="mt-4 grid gap-3 text-sm font-bold opacity-75">
-            <p className="inline-flex items-center gap-2"><Tag className="h-4 w-4" /> Task: {taskConfig?.label || task}</p>
-            <p className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Site: {SITE_CONFIG.name}</p>
-            {post.publishedAt ? <p>Published: {new Date(post.publishedAt).toLocaleDateString()}</p> : null}
-          </div>
-        </div>
-      ) : null}
       {related.length ? (
-        <div className="rounded-[2rem] border border-[var(--editable-border)] bg-white/70 p-5 backdrop-blur">
+        <div className="rounded-lg border border-[var(--editable-border)] bg-white p-5 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-black tracking-[-0.04em]">More like this</h2>
             <Link href={taskConfig?.route || '/'} className="text-xs font-black uppercase tracking-[0.16em] opacity-55">View all</Link>
@@ -407,7 +495,7 @@ function RelatedPanel({ task, post, related, compact = false }: { task: TaskKey;
 function RelatedCard({ task, post }: { task: TaskKey; post: SitePost }) {
   const image = getImages(post)[0]
   return (
-    <Link href={buildPostUrl(task, post.slug)} className="group flex gap-3 rounded-2xl border border-[var(--editable-border)] bg-white p-3 transition hover:-translate-y-0.5 hover:shadow-lg">
+    <Link href={buildPostUrl(task, post.slug)} className="group flex gap-3 rounded-lg border border-[var(--editable-border)] bg-white p-3 transition hover:-translate-y-0.5 hover:shadow-lg">
       {image && task !== 'sbm' ? <img src={image} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover" /> : <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-[var(--detail-bg)]"><FileText className="h-6 w-6 opacity-45" /></div>}
       <div className="min-w-0">
         <h3 className="line-clamp-3 text-sm font-black leading-tight tracking-[-0.03em]">{post.title}</h3>
@@ -419,7 +507,7 @@ function RelatedCard({ task, post }: { task: TaskKey; post: SitePost }) {
 
 function EditableComments({ slug, comments }: { slug: string; comments: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
   return (
-    <section className="mt-10 rounded-[2rem] border border-[var(--editable-border)] bg-white/70 p-5">
+    <section className="mt-10 rounded-lg border border-[var(--editable-border)] bg-white/70 p-5">
       <div className="flex items-center gap-2 text-lg font-black"><MessageCircle className="h-5 w-5" /> Comments</div>
       <div className="mt-5 grid gap-3">
         {comments.slice(0, 5).map((comment) => (
